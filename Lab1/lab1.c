@@ -25,14 +25,14 @@ typedef struct lineaDeComando{
 
 int cuenta_lineas(char* nombreArchivo);
 visibilidades* leer_visibilidades(char *nombreArchivo);
+int verificador_entradas(entradaComando entrada);
 int main(int argc, char *argv[]){   
     entradaComando opciones;
     opciones.ptrcsl = 0;
     int opt;
-
     while((opt = getopt(argc,argv,":i:o:d:n:b")) != -1){
         switch (opt){
-            case 'i':
+            case 'i': 
                 strcpy(opciones.archivoVisibilidades,optarg);
                 break;
             case 'o':
@@ -49,11 +49,19 @@ int main(int argc, char *argv[]){
                 break;
         }
     }
+    //Se hace llamado a metodo que verifica las condiciones 
+    int verificador = verificador_entradas(opciones);
+    if (verificador = 1)
+    {
+        return 0;
+    }
+    
 
     printf("\n%s %s %d %d %d\n",opciones.archivoVisibilidades,opciones.archivoSalida,
             opciones.cantDiscos,opciones.anchoDisco,opciones.ptrcsl);
 
 	
+    
     
 	return 0;
 }
@@ -110,6 +118,37 @@ visibilidades* leer_visibilidades(char *nombreArchivo){
 		fclose(archivo);
 	}
     return listaVisibilidades;
+}
+
+/*
+ * Function:  verificador_entradas
+ * --------------------
+ * Comprueba que los datos almacenados en la estructura de archivos estè correcta
+ *  entrada: estructura con los datos de entrada
+ *  retorno: void
+ */
+int verificador_entradas(entradaComando entrada){
+    int output = 0;
+     if (entrada.anchoDisco <= 0){
+        printf("El ancho del disco debe ser mayor a 0.\n");
+        output =+ 1;
+        return output;
+    }
+
+    if (entrada.cantDiscos <= 0){
+        printf("La cantidad de discos debe ser mayor a 0.\n");
+        output =+ 1;
+        return output;
+    }
+
+    FILE *f=fopen(entrada.archivoVisibilidades,"r");
+    if(f == NULL){ 
+        printf("El archivo de entrada no existe.\n");
+        output =+ 1;
+        return output;
+    }
+    
+
 }
 
 
