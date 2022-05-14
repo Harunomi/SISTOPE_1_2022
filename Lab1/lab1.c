@@ -27,7 +27,8 @@ int cuenta_lineas(char* nombreArchivo);
 visibilidades* leer_visibilidades(char *nombreArchivo);
 int verificador_entradas(entradaComando entrada);
 int* arreglo_visibilidades_por_disco(int cantidadVisibilidades, int cantidadDiscos);
-
+int** crea_pipes_lectura(int cantidadDiscos);
+int** crea_pipes_escritura(int cantidadDiscos);
 int main(int argc, char *argv[]){   
     entradaComando opciones;
     opciones.ptrcsl = 0;
@@ -195,3 +196,36 @@ int* arreglo_visibilidades_por_disco(int cantidadVisibilidades, int cantidadDisc
     
 }
 
+/*
+ * Function:  crea_pipes_lectura(
+ * --------------------
+ * Crea un arreglo con los pipes para realizar la lectura entre padre e hijo
+ *  entrada: cantidad de discos (hijos)
+ *  retorno: arreglo de pipes
+ */
+int** crea_pipes_lectura(int cantidadDiscos){
+    int ** pipesLectura = (int**)malloc(sizeof(int *)*cantidadDiscos);
+    for (int i = 0; i < cantidadDiscos; i++)
+    {
+        pipesLectura[i] = (int*)malloc(sizeof(int)*2);
+        pipe(pipesLectura[i]);
+    }
+    return pipesLectura;
+}
+
+/*
+ * Function:  crea_pipes_escritura(
+ * --------------------
+ * Crea un arreglo con los pipes para realizar la escritura entre padre e hijo
+ *  entrada: cantidad de discos (hijos)
+ *  retorno: arreglo de pipes
+ */
+int** crea_pipes_escritura(int cantidadDiscos){
+    int ** pipesEscritura = (int**)malloc(sizeof(int *)*cantidadDiscos);
+    for (int i = 0; i < cantidadDiscos; i++)
+    {
+        pipesEscritura[i] = (int*)malloc(sizeof(int)*2);
+        pipe(pipesEscritura[i]);
+    }
+    return pipesEscritura;
+}
