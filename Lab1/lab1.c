@@ -26,6 +26,8 @@ typedef struct lineaDeComando{
 int cuenta_lineas(char* nombreArchivo);
 visibilidades* leer_visibilidades(char *nombreArchivo);
 int verificador_entradas(entradaComando entrada);
+int* arreglo_visibilidades_por_disco(int cantidadVisibilidades, int cantidadDiscos);
+
 int main(int argc, char *argv[]){   
     entradaComando opciones;
     opciones.ptrcsl = 0;
@@ -49,16 +51,28 @@ int main(int argc, char *argv[]){
                 break;
         }
     }
+    /*
     //Se hace llamado a metodo que verifica las condiciones 
     int verificador = verificador_entradas(opciones);
     if (verificador = 1)
     {
         return 0;
-    }
+    }*/
     
 
     printf("\n%s %s %d %d %d\n",opciones.archivoVisibilidades,opciones.archivoSalida,
             opciones.cantDiscos,opciones.anchoDisco,opciones.ptrcsl);
+
+    int cantidadTotalVisibilidades = cuenta_lineas(opciones.archivoVisibilidades);
+    //se crea arreglo con las cantidades de visibilidades que tendrà cada disco
+    int* arreglos = arreglo_visibilidades_por_disco(cantidadTotalVisibilidades, opciones.cantDiscos);
+
+    for (int i = 0; i < opciones.cantDiscos; i++)
+    {
+        printf("ID= %d numero %d", i,arreglos[i]);
+    }
+    
+    
 
 	
     
@@ -141,15 +155,43 @@ int verificador_entradas(entradaComando entrada){
         return output;
     }
 
-    FILE *f=fopen(entrada.archivoVisibilidades,"r");
-    if(f == NULL){ 
-        printf("El archivo de entrada no existe.\n");
+    FILE *archivo=fopen(entrada.archivoVisibilidades,"r");
+    if(archivo == NULL){ 
+        printf("El archivo ingresado no ha sido localizado.\n");
         output =+ 1;
         return output;
     }
+    fclose(archivo);
     
 
 }
 
-
+/*
+ * Function:  arreglo_visibilidades_por_disco
+ * --------------------
+ * Crea un arreglo con la cantidad de cuantas visibilidades debe procesar cada disco (hijo)
+ *  entrada: cantidad total de visibilidades en el archivo, cantidad de discos (hijos)
+ *  retorno: arreglo de enteros
+ */
+int* arreglo_visibilidades_por_disco(int cantidadVisibilidades, int cantidadDiscos){
+    int cantidadPorDisco = cantidadVisibilidades / cantidadDiscos;
+    int * arregloCantidades = malloc(sizeof(int)*cantidadDiscos+1);
+    if (cantidadVisibilidades%cantidadDiscos == 0)
+    {
+        for (int i = 0; i < cantidadDiscos; i++)
+        {
+            arregloCantidades[i] = cantidadPorDisco;
+        }
+        
+    }else{
+        for (int i = 0; i < cantidadDiscos - 1; i++)
+        {
+            arregloCantidades[i] = cantidadPorDisco;
+        }
+        arregloCantidades[cantidadDiscos-1] = cantidadPorDisco + 1;
+        
+    }
+    return arregloCantidades;
+    
+}
 
