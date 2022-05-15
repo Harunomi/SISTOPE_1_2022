@@ -3,75 +3,125 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
-#define MAX_FILE_NAME 100
+#include <math.h>
+#include "Funciones.h"
+
+#define LECTURA 0
+#define ESCRITURA 1
 
 
-//Estructura para representar una visibilidad
-typedef struct visibilidadesStruct{
-    float ejeU;
-    float ejeV;
-    float valorReal;
-    float valorImaginario;
-    float ruido;
-}visibilidades;
-
-typedef struct lineaDeComando{
-    char archivoVisibilidades[40];
-    char archivoSalida[40];
-    int cantDiscos;
-    int anchoDisco;
-    int ptrcsl; // variable para saber si se imprime por pantalla o no
-}entradaComando;
-
-int cuenta_lineas(char* nombreArchivo);
-visibilidades* leer_visibilidades(char *nombreArchivo);
-int verificador_entradas(entradaComando entrada);
-int* arreglo_visibilidades_por_disco(int cantidadVisibilidades, int cantidadDiscos);
-int** crea_pipes_lectura(int cantidadDiscos);
-int** crea_pipes_escritura(int cantidadDiscos);
 int main(int argc, char *argv[]){   
-    entradaComando opciones;
-    opciones.ptrcsl = 0;
+    entradaComando o;
+    visibilidades v;
+    o.ptrcsl = 0;
     int opt;
+    pid_t pid;
+    int status;
+    float distancia;
+    char *cNum;
+    int sizeCNum;
     while((opt = getopt(argc,argv,":i:o:d:n:b")) != -1){
         switch (opt){
             case 'i': 
-                strcpy(opciones.archivoVisibilidades,optarg);
+                strcpy(o.archivoVisibilidades,optarg);
                 break;
             case 'o':
-                strcpy(opciones.archivoSalida,optarg);
+                strcpy(o.archivoSalida,optarg);
                 break;
             case 'd':
-                opciones.cantDiscos = atoi(optarg);
+                o.cantDiscos = atoi(optarg);
                 break;
             case 'n':
-                opciones.anchoDisco = atoi(optarg);
+                o.anchoDisco = atoi(optarg);
                 break;
             case 'b':
-                opciones.ptrcsl = 1;
+                o.ptrcsl = 1;
                 break;
         }
     }
-    /*
-    //Se hace llamado a metodo que verifica las condiciones 
-    int verificador = verificador_entradas(opciones);
-    if (verificador = 1)
-    {
-        return 0;
-    }*/
-    
-
-    printf("\n%s %s %d %d %d\n",opciones.archivoVisibilidades,opciones.archivoSalida,
-            opciones.cantDiscos,opciones.anchoDisco,opciones.ptrcsl);
-
-    int cantidadTotalVisibilidades = cuenta_lineas(opciones.archivoVisibilidades);
-    //se crea arreglo con las cantidades de visibilidades que tendrà cada disco
-    int* arreglos = arreglo_visibilidades_por_disco(cantidadTotalVisibilidades, opciones.cantDiscos);
-
-    for (int i = 0; i < opciones.cantDiscos; i++)
-    {
-        printf("ID= %d numero %d", i,arreglos[i]);
+    verificador_entradas(o);
+    FILE *fp = fopen(o.archivoVisibilidades,"r");
+    // creo un arreglo con los rangos del disco
+    int *rangoDiscos = (int*)malloc(sizeof(int)*o.cantDiscos); 
+    for (int i = 0; i < o.cantDiscos; i++) {
+        rangoDiscos[i] = o.anchoDisco*i;
     }
+
+    // creo un arreglo para guardar el total de visibilidades que le toca a cada disco.
+    int *cantidadVisibilidades = (int*)malloc(sizeof(int)*o.cantDiscos);
+    //lo inicializo en cero
+    for (int i = 0; i < o.cantDiscos; i++) {
+        cantidadVisibilidades[i] = 0;
+    }
+
+    // creo los pipes de lectura y escritura
+    int **arregloPipesEscritura = (int**)malloc(sizeof(int*)*o.cantDiscos);
+    int **arregloPipesLectura = (int**)malloc(sizeof(int*)*o.cantDiscos);
+    // les asigno memoria a los canales
+    for (int i = 0; i < o.cantDiscos; i++) {
+        arregloPipesEscritura[i] = (int*)malloc(sizeof(int)*2);
+        arregloPipesLectura[i] = (int*)malloc(sizeof(int)*2);
+        pipe(arregloPipesEscritura[i]);
+        pipe(arregloPipesLectura[i]);
+    }   
+    // se calcula el total del lineas que tiene el archivo de lectura.
+    int totalLineas = cuenta_lineas(o.archivoVisibilidades);
+
+    for (int i = 0; i < o.cantDiscos; i++) {
+        pid = fork();
+
+        if (pid != 0){ // soy el padre
+            for (int j = 0; j < totalLineas ; j++) {
+                // leo la linea del codigo
+                fscanf("%f,%f,%f,%f,%f",&v.ejeU,&v.ejeV,&v.valorReal,&v.valorImaginario,&v.ruido);
+                // calculo su distancia
+                distancia = sqrt(pow(v.ejeU,2) + pow(v.ejeV,2));
+                // determino si esa distancia corresponde al disco (proceso) actual
+                if(distancia>=rangoDiscos[i] && distancia < rangoDiscos[i+1] && i+1 < o.cantDiscos){   
+                    // si corresponde al proceso actual, entonces lo mando por el pipe
+                    write(arregloPipesLectura[i][ESCRITURA], v.ejeU, sizeof(float));
+                    write(arregloPipesLectura[i][ESCRITURA], v.ejeV, sizeof(float));
+                    write(arregloPipesLectura[i][ESCRITURA], v.valorReal, sizeof(float));
+                    write(arregloPipesLectura[i][ESCRITURA], v.valorImaginario, sizeof(float));
+                    write(arregloPipesLectura[i][ESCRITURA], v.ruido, sizeof(float));
+                    cantidadVisibilidades[i] = cantidadVisibilidades[i] + 1;   
+                }
+                if(distancia >=rangoDiscos[o.cantDiscos-1]){
+                    write(arregloPipesLectura[o.cantDiscos-1][ESCRITURA], v.ejeU, sizeof(float));
+                    write(arregloPipesLectura[o.cantDiscos-1][ESCRITURA], v.ejeV, sizeof(float));
+                    write(arregloPipesLectura[o.cantDiscos-1][ESCRITURA], v.valorReal, sizeof(float));
+                    write(arregloPipesLectura[o.cantDiscos-1][ESCRITURA], v.valorImaginario, sizeof(float));
+                    write(arregloPipesLectura[o.cantDiscos-1][ESCRITURA], v.ruido, sizeof(float));   
+                    cantidadVisibilidades[o.cantDiscos-1] = cantidadVisibilidades[o.cantDiscos-1] + 1;
+                }
+
+                waitpid(pid,&status,0);
+
+                close(arregloPipesEscritura[i][ESCRITURA]);
+
+                
+            }
+        }else{ // soy el hijo
+            close(arregloPipesEscritura[i][LECTURA]);
+            dup2(arregloPipesEscritura[i][ESCRITURA],STDOUT_FILENO);
+            close(arregloPipesEscritura[i][ESCRITURA]);
+
+            close(arregloPipesLectura[i][ESCRITURA]);
+            dup2(arregloPipesLectura[i][LECTURA],STDIN_FILENO);
+            close(arregloPipesLectura[i][LECTURA]);
+
+            // transformo el total de visibilidades para el respectivo disco a string
+            sizeCNum = snprintf(NULL, 0, "%d",cantidadVisibilidades[i]);
+            cNum = malloc(sizeCNum + 1);
+            snprintf(cNum,sizeCNum+1,"%d",cantidadVisibilidades[i]);
+
+            execl("vis",cNum,NULL);
+        }
+    }
+
+    
+    
+    
     
     
 
@@ -79,153 +129,4 @@ int main(int argc, char *argv[]){
     
     
 	return 0;
-}
-/*
- * Function:  cuenta_lineas 
- * --------------------
- * cuenta la cantidad de lineas que contiene un archivo
- *
- *  nombreArchivo: es el nombre del archivo el cual se abrirá y se procederá a contar sus lineas
- *
- *  retorno: cantidad de lineas que tiene un archivo
- */
-int cuenta_lineas(char *nombreArchivo){
-    int cantidadLineas;
-    char variableContador; //Variable auxiliara para recorrer archivo
-    cantidadLineas = 0;
-    FILE *fp;
-    fp = fopen(nombreArchivo,"r");
-    if (nombreArchivo == NULL){
-        printf("No se pudo abrir el archivo %s", nombreArchivo);
-		return 0;
-    }else{
-        for (variableContador = getc(fp); variableContador != EOF; variableContador = getc(fp))
-        {
-            if (variableContador == '\n') {// Aumenta cada vez que encuentra un salto de lineas
-            cantidadLineas = cantidadLineas + 1;
-            }
-        }
-    }
-    fclose(fp);
-    return cantidadLineas;
-}
-/*
- * Function:  leer_visibilidades
- * --------------------
- * lee el archivo y almacena los valores en un arreglo de estructuas
- *
- *  nombreArchivo: es el nombre del archivo el cual se abrirá y se procederá a contar sus lineas
- *  cantidadVisibilidades: cantidad de visibilidades existentes en el archivo
- *  retorno: cantidad de lineas que tiene un archivo
- */
-visibilidades* leer_visibilidades(char *nombreArchivo){
-    FILE* archivo;
-    int  i, cantidadVisibilidades;
-    cantidadVisibilidades = cuenta_lineas(nombreArchivo);
-    i = 0;
-    //char buffer[1024];
-    visibilidades *listaVisibilidades = (visibilidades*)malloc(sizeof(visibilidades) * cantidadVisibilidades);
-    if (archivo = fopen(nombreArchivo, "r")){
-		//fgets(buffer, 1024, archivo);
-		while (fscanf(archivo, "%f,%f,%f,%f,%f", &listaVisibilidades[i].ejeU, &listaVisibilidades[i].ejeV, &listaVisibilidades[i].valorReal, &listaVisibilidades[i].valorImaginario, &listaVisibilidades[i].ruido) != EOF){
-			++i;
-		}
-		fclose(archivo);
-	}
-    return listaVisibilidades;
-}
-
-/*
- * Function:  verificador_entradas
- * --------------------
- * Comprueba que los datos almacenados en la estructura de archivos estè correcta
- *  entrada: estructura con los datos de entrada
- *  retorno: void
- */
-int verificador_entradas(entradaComando entrada){
-    int output = 0;
-     if (entrada.anchoDisco <= 0){
-        printf("El ancho del disco debe ser mayor a 0.\n");
-        output =+ 1;
-        return output;
-    }
-
-    if (entrada.cantDiscos <= 0){
-        printf("La cantidad de discos debe ser mayor a 0.\n");
-        output =+ 1;
-        return output;
-    }
-
-    FILE *archivo=fopen(entrada.archivoVisibilidades,"r");
-    if(archivo == NULL){ 
-        printf("El archivo ingresado no ha sido localizado.\n");
-        output =+ 1;
-        return output;
-    }
-    fclose(archivo);
-    
-
-}
-
-/*
- * Function:  arreglo_visibilidades_por_disco
- * --------------------
- * Crea un arreglo con la cantidad de cuantas visibilidades debe procesar cada disco (hijo)
- *  entrada: cantidad total de visibilidades en el archivo, cantidad de discos (hijos)
- *  retorno: arreglo de enteros
- */
-int* arreglo_visibilidades_por_disco(int cantidadVisibilidades, int cantidadDiscos){
-    int cantidadPorDisco = cantidadVisibilidades / cantidadDiscos;
-    int * arregloCantidades = malloc(sizeof(int)*cantidadDiscos+1);
-    if (cantidadVisibilidades%cantidadDiscos == 0)
-    {
-        for (int i = 0; i < cantidadDiscos; i++)
-        {
-            arregloCantidades[i] = cantidadPorDisco;
-        }
-        
-    }else{
-        for (int i = 0; i < cantidadDiscos - 1; i++)
-        {
-            arregloCantidades[i] = cantidadPorDisco;
-        }
-        arregloCantidades[cantidadDiscos-1] = cantidadPorDisco + 1;
-        
-    }
-    return arregloCantidades;
-    
-}
-
-/*
- * Function:  crea_pipes_lectura(
- * --------------------
- * Crea un arreglo con los pipes para realizar la lectura entre padre e hijo
- *  entrada: cantidad de discos (hijos)
- *  retorno: arreglo de pipes
- */
-int** crea_pipes_lectura(int cantidadDiscos){
-    int ** pipesLectura = (int**)malloc(sizeof(int *)*cantidadDiscos);
-    for (int i = 0; i < cantidadDiscos; i++)
-    {
-        pipesLectura[i] = (int*)malloc(sizeof(int)*2);
-        pipe(pipesLectura[i]);
-    }
-    return pipesLectura;
-}
-
-/*
- * Function:  crea_pipes_escritura(
- * --------------------
- * Crea un arreglo con los pipes para realizar la escritura entre padre e hijo
- *  entrada: cantidad de discos (hijos)
- *  retorno: arreglo de pipes
- */
-int** crea_pipes_escritura(int cantidadDiscos){
-    int ** pipesEscritura = (int**)malloc(sizeof(int *)*cantidadDiscos);
-    for (int i = 0; i < cantidadDiscos; i++)
-    {
-        pipesEscritura[i] = (int*)malloc(sizeof(int)*2);
-        pipe(pipesEscritura[i]);
-    }
-    return pipesEscritura;
 }
