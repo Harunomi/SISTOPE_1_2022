@@ -1,4 +1,4 @@
-#ifndef Funciones_h_
+//#ifndef Funciones_h_
 #define Funciones_h_
 #include <stdio.h>
 
@@ -26,4 +26,4 @@ int* arreglo_visibilidades_por_disco(int cantidadVisibilidades, int cantidadDisc
 int** crea_pipes_lectura(int cantidadDiscos);
 int** crea_pipes_escritura(int cantidadDiscos);
 
-#endif
+//#endif

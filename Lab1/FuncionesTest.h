@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "Funciones.h"
 #include "math.h"
 #include <unistd.h>
 
@@ -13,7 +12,6 @@
  *
  *  retorno: cantidad de lineas que tiene un archivo
  */
-/*
 int cuenta_lineas(char *nombreArchivo){
     int cantidadLineas;
     char variableContador; //Variable auxiliara para recorrer archivo
@@ -33,7 +31,7 @@ int cuenta_lineas(char *nombreArchivo){
     }
     fclose(fp);
     return cantidadLineas;
-}*/
+}
 /*
  * Function:  leer_visibilidades
  * --------------------
@@ -43,7 +41,6 @@ int cuenta_lineas(char *nombreArchivo){
  *  cantidadVisibilidades: cantidad de visibilidades existentes en el archivo
  *  retorno: cantidad de lineas que tiene un archivo
  */
-/*
 visibilidades* leer_visibilidades(char *nombreArchivo){
     FILE* archivo;
     int  i, cantidadVisibilidades;
@@ -59,7 +56,7 @@ visibilidades* leer_visibilidades(char *nombreArchivo){
 		fclose(archivo);
 	}
     return listaVisibilidades;
-}*/
+}
 
 /*
  * Function:  verificador_entradas
@@ -68,7 +65,6 @@ visibilidades* leer_visibilidades(char *nombreArchivo){
  *  entrada: estructura con los datos de entrada
  *  retorno: void
  */
-/*
 void verificador_entradas(entradaComando entrada){
      if (entrada.anchoDisco <= 0){
         printf("ERROR: El ancho del disco debe ser mayor a 0.\n");
@@ -88,7 +84,7 @@ void verificador_entradas(entradaComando entrada){
     fclose(archivo);   
     
 
-}*/
+}
 
 /*
  * Function:  arreglo_visibilidades_por_disco

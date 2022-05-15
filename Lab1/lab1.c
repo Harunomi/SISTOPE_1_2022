@@ -6,9 +6,10 @@
 #include <sys/wait.h>
 #include <sys/types.h>
 #include "Funciones.h"
-
+#include "FuncionesTest.h"
 #define LECTURA 0
 #define ESCRITURA 1
+/*
 int cuenta_lineas(char *nombreArchivo){
     int cantidadLineas;
     char variableContador; //Variable auxiliara para recorrer archivo
@@ -28,7 +29,8 @@ int cuenta_lineas(char *nombreArchivo){
     }
     fclose(fp);
     return cantidadLineas;
-}
+}*/
+/*
 void verificador_entradas(entradaComando entrada){
      if (entrada.anchoDisco <= 0){
         printf("ERROR: El ancho del disco debe ser mayor a 0.\n");
@@ -48,7 +50,7 @@ void verificador_entradas(entradaComando entrada){
     fclose(archivo);   
     
 
-}
+}*/
 
 int *totalVisibilidades(char *nombreArchivo,int totalLineas,int cantDiscos,int *rangoDiscos){
     visibilidades v;
