@@ -15,5 +15,5 @@ int main(int argc, char **argv){
         write(STDOUT_FILENO,&v[i], sizeof(visibilidades));
         
     }
-    
+    return 0;
 }

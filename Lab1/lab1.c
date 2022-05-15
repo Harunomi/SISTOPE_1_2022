@@ -71,11 +71,9 @@ int *totalVisibilidades(char *nombreArchivo,int totalLineas,int cantDiscos,int *
             if(distancia>=rangoDiscos[i] && distancia < rangoDiscos[i+1] && i+1 < cantDiscos){   
                 // si corresponde al proceso actual, entonces lo mando por el pipe
                 counter++;
-                //printf("%d ",counter);
             }
             if(distancia >=rangoDiscos[cantDiscos-1]){
                 counter2++;
-                //printf("%d ",counter);
             }
         }
         cantidadVisibilidades[i] = counter;
@@ -84,7 +82,6 @@ int *totalVisibilidades(char *nombreArchivo,int totalLineas,int cantDiscos,int *
         }
         fclose(fp);
     }
-
     return cantidadVisibilidades;
     
 }
@@ -120,7 +117,7 @@ int main(int argc, char *argv[]){
         }
     }
     verificador_entradas(o);
-    FILE *fp;
+    FILE * fp;
     // creo un arreglo con los rangos del disco
     int *rangoDiscos = (int*)malloc(sizeof(int)*o.cantDiscos); 
     for (int i = 0; i < o.cantDiscos; i++) {
@@ -149,14 +146,15 @@ int main(int argc, char *argv[]){
 
 
     cantidadVisibilidades = totalVisibilidades(o.archivoVisibilidades,totalLineas,o.cantDiscos,rangoDiscos);
-    printf("%d\n",cantidadVisibilidades[0]);
     
     
+
     for (int i = 0; i < o.cantDiscos; i++) {
         pid = fork();
-
+        
         if (pid != 0){ // soy el padre
             fp = fopen(o.archivoVisibilidades,"r");
+            printf("   %d\n",i);
             for (int j = 0; j < totalLineas ; j++) {
                 // leo la linea del codigo
                 fscanf(fp,"%f,%f,%f,%f,%f",&v.ejeU,&v.ejeV,&v.valorReal,&v.valorImaginario,&v.ruido);
@@ -165,8 +163,8 @@ int main(int argc, char *argv[]){
                 // determino si esa distancia corresponde al disco (proceso) actual
                 if(distancia>=rangoDiscos[i] && distancia < rangoDiscos[i+1] && i+1 < o.cantDiscos){   
                     // si corresponde al proceso actual, entonces lo mando por el pipe
-                    write(arregloPipesLectura[i][ESCRITURA], &v, sizeof(visibilidades));
-                    
+                    write(arregloPipesLectura[i][ESCRITURA], &v, sizeof(visibilidades));   
+                    //printf("%d\n",j);                 
                 }
                 if(distancia >=rangoDiscos[o.cantDiscos-1]){
                     write(arregloPipesLectura[o.cantDiscos-1][ESCRITURA], &v, sizeof(visibilidades));
@@ -174,6 +172,7 @@ int main(int argc, char *argv[]){
                 
             }
             fclose(fp);
+
             waitpid(pid,&status,0);
             close(arregloPipesEscritura[i][ESCRITURA]);
             
@@ -181,6 +180,8 @@ int main(int argc, char *argv[]){
                 read(arregloPipesEscritura[i][LECTURA], &out,sizeof(visibilidades));
                 printf("%d %f %f %f %f %f\n",k,out.ejeU,out.ejeV,out.valorReal,out.valorImaginario,out.ruido);
             }
+            printf("termine\n");
+            close(arregloPipesEscritura[i][LECTURA]);
         }else{ // soy el hijo
             close(arregloPipesEscritura[i][LECTURA]);
             dup2(arregloPipesEscritura[i][ESCRITURA],STDOUT_FILENO);
