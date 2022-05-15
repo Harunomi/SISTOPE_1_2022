@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include "Funciones.h"
 #include "math.h"
-
+#include <unistd.h>
 /*
  * Function:  cuenta_lineas 
  * --------------------

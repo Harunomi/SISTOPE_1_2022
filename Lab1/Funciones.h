@@ -1,6 +1,6 @@
 #ifndef Funciones_h_
 #define Funciones_h_
-#include<stdio.h>
+#include <stdio.h>
 
 //Estructura para representar una visibilidad
 typedef struct visibilidadesStruct{

@@ -6,16 +6,14 @@
 #include "Funciones.h"
 
 int main(int argc, char **argv){
-    totalV = atoi(argv[1]);
+    int totalV = atoi(argv[0]);
     visibilidades *v = (visibilidades*)malloc(sizeof(visibilidades)*totalV);
 
     for (int i = 0; i < totalV; i++) {
-        read(STDIN_FILENO,v[i].ejeU, sizeof(float));
-        read(STDIN_FILENO,v[i].ejeV, sizeof(float));
-        read(STDIN_FILENO,v[i].valorReal, sizeof(float));
-        read(STDIN_FILENO,v[i].valorImaginario, sizeof(float));
-        read(STDIN_FILENO,v[i].ruido, sizeof(float));
-        printf("%f %f %f %f %f\n",v[i].ejeU,v[i].ejeV,v[i].valorReal,v.valorImaginario,v.ruido);
+        read(STDIN_FILENO,&v[i], sizeof(visibilidades));
+
+        write(STDOUT_FILENO,&v[i], sizeof(visibilidades));
+        
     }
     
 }
