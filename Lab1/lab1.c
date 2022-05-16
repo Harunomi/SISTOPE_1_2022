@@ -91,7 +91,7 @@ int *totalVisibilidades(char *nombreArchivo,int totalLineas,int cantDiscos,int *
 int main(int argc, char *argv[]){   
     entradaComando o;
     visibilidades v;
-    visibilidades out;
+    visibilidades *out;
     o.ptrcsl = 0;
     int opt;
     pid_t pid;
@@ -120,6 +120,7 @@ int main(int argc, char *argv[]){
     }
     verificador_entradas(o);
     FILE * fp;
+    FILE * salida = fopen(o.archivoSalida,"w");
     // creo un arreglo con los rangos del disco
     int *rangoDiscos = (int*)malloc(sizeof(int)*o.cantDiscos); 
     for (int i = 0; i < o.cantDiscos; i++) {
@@ -149,40 +150,54 @@ int main(int argc, char *argv[]){
 
     cantidadVisibilidades = totalVisibilidades(o.archivoVisibilidades,totalLineas,o.cantDiscos,rangoDiscos);
     
-    
+
+    visibilidades *lista;
+    int aux;
+    resultado r;
 
     for (int i = 0; i < o.cantDiscos; i++) {
         pid = fork();
         
         if (pid != 0){ // soy el padre
             fp = fopen(o.archivoVisibilidades,"r");
-            printf("   %d\n",i);
+            aux = 0;
+            lista = (visibilidades*)malloc(sizeof(visibilidades)*cantidadVisibilidades[i]);
             for (int j = 0; j < totalLineas ; j++) {
                 // leo la linea del codigo
                 fscanf(fp,"%f,%f,%f,%f,%f",&v.ejeU,&v.ejeV,&v.valorReal,&v.valorImaginario,&v.ruido);
+                //printf("%f,%f,%f,%f,%f\n",v.ejeU,v.ejeV,v.valorReal,v.valorImaginario,v.ruido);
                 // calculo su distancia
                 distancia = sqrt(pow(v.ejeU,2) + pow(v.ejeV,2));
-                // determino si esa distancia corresponde al disco (proceso) actual
+                // determino si esa distancia corresponde al disco (proceso) actual             
                 if(distancia>=rangoDiscos[i] && distancia < rangoDiscos[i+1] && i+1 < o.cantDiscos){   
                     // si corresponde al proceso actual, entonces lo mando por el pipe
-                    write(arregloPipesLectura[i][ESCRITURA], &v, sizeof(visibilidades));   
-                    //printf("%d\n",j);                 
+                    //write(arregloPipesLectura[i][ESCRITURA], &v, sizeof(visibilidades));   
+                    lista[aux] = v;
+                    //printf("%f %f %f %f %f\n",lista[aux].ejeU,lista[aux].ejeV,lista[aux].valorReal,lista[aux].valorImaginario,lista[aux].ruido);
+                    aux++;
                 }
-                if(distancia >=rangoDiscos[o.cantDiscos-1]){
-                    write(arregloPipesLectura[o.cantDiscos-1][ESCRITURA], &v, sizeof(visibilidades));
+                if(distancia >=rangoDiscos[o.cantDiscos-1] && i == o.cantDiscos-1){
+                    //write(arregloPipesLectura[o.cantDiscos-1][ESCRITURA], &v, sizeof(visibilidades));
+                    lista[aux] = v;
+                    aux++;
                 }
                 
             }
+            write(arregloPipesLectura[i][ESCRITURA], &lista,sizeof(visibilidades*));
+            free(lista);
             fclose(fp);
+
 
             waitpid(pid,&status,0);
             close(arregloPipesEscritura[i][ESCRITURA]);
+
+            read(arregloPipesEscritura[i][LECTURA], &r,sizeof(resultado));
+            fprintf(salida,"Disco %d\n",i+1);
+            fprintf(salida,"Media real: %f\n",r.mediaReal);
+            fprintf(salida,"Media imaginaria: %f\n",r.mediaImaginaria);
+            fprintf(salida,"Potencia: %f\n",r.potencia);
+            fprintf(salida,"Ruido total: %f\n",r.ruidoTotal);
             
-            for (int k = 0; k < cantidadVisibilidades[i]; k++) {
-                read(arregloPipesEscritura[i][LECTURA], &out,sizeof(visibilidades));
-                printf("%d %f %f %f %f %f\n",k,out.ejeU,out.ejeV,out.valorReal,out.valorImaginario,out.ruido);
-            }
-            printf("termine\n");
             close(arregloPipesEscritura[i][LECTURA]);
         }else{ // soy el hijo
             close(arregloPipesEscritura[i][LECTURA]);
@@ -200,8 +215,11 @@ int main(int argc, char *argv[]){
             
 
             execl("vis",cNum,NULL);
+            printf("Soy el hijo de pid %d, procese %d visibilidades",getpid(),cantidadVisibilidades[i]);
+
         }
     }
+    fclose(salida);
 
     
     

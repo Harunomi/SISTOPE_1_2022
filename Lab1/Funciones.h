@@ -19,6 +19,13 @@ typedef struct lineaDeComando{
     int ptrcsl; // variable para saber si se imprime por pantalla o no
 }entradaComando;
 
+typedef struct structResultado{
+    float mediaReal;
+    float mediaImaginaria;
+    float potencia;
+    float ruidoTotal;
+}resultado;
+
 int cuenta_lineas(char* nombreArchivo);
 visibilidades* leer_visibilidades(char *nombreArchivo);
 void verificador_entradas(entradaComando entrada);
