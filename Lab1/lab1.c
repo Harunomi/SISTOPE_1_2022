@@ -129,11 +129,6 @@ int main(int argc, char *argv[]){
 
     // creo un arreglo para guardar el total de visibilidades que le toca a cada disco.
     int *cantidadVisibilidades = (int*)malloc(sizeof(int)*o.cantDiscos);
-    //lo inicializo en cero
-    //for (int i = 0; i < o.cantDiscos; i++) {
-    //    cantidadVisibilidades[i] = 0;
-   // }
-
     // creo los pipes de lectura y escritura
     int **arregloPipesEscritura = (int**)malloc(sizeof(int*)*o.cantDiscos);
     int **arregloPipesLectura = (int**)malloc(sizeof(int*)*o.cantDiscos);
@@ -153,8 +148,9 @@ int main(int argc, char *argv[]){
 
     visibilidades *lista;
     int aux;
+    //visibilidades* r;// = (visibilidades*)malloc(sizeof(visibilidades)*4);
     resultado r;
-
+    char s[20];
     for (int i = 0; i < o.cantDiscos; i++) {
         pid = fork();
         
@@ -190,15 +186,38 @@ int main(int argc, char *argv[]){
 
             waitpid(pid,&status,0);
             close(arregloPipesEscritura[i][ESCRITURA]);
+            //r = (visibilidades*)malloc(sizeof(visibilidades)*cantidadVisibilidades[i]);
+            read(arregloPipesEscritura[i][LECTURA],&r,sizeof(resultado));
 
-            read(arregloPipesEscritura[i][LECTURA], &r,sizeof(resultado));
-            fprintf(salida,"Disco %d\n",i+1);
-            fprintf(salida,"Media real: %f\n",r.mediaReal);
-            fprintf(salida,"Media imaginaria: %f\n",r.mediaImaginaria);
-            fprintf(salida,"Potencia: %f\n",r.potencia);
-            fprintf(salida,"Ruido total: %f\n",r.ruidoTotal);
+            //resultado a = calcular(r,cantidadVisibilidades[i]);
+            printf("Disco %d\n",i+1);
+            printf("Media real: %Lf\n",r.mediaReal);
+            printf("Media Imaginaria: %Lf\n",r.mediaImaginaria);
+            printf("Potencia: %Lf\n",r.potencia);
+            printf("Ruido total: %Lf\n",r.ruidoTotal);
+
             
-            close(arregloPipesEscritura[i][LECTURA]);
+
+
+
+            
+
+            /*
+            printf("Disco %d\n",i+1);
+            read(arregloPipesEscritura[i][LECTURA],s,sizeof(char)*20);
+    
+
+            printf("Media real: %s\n",s);
+            read(arregloPipesEscritura[i][LECTURA],s,sizeof(char)*20);
+            printf("Media imaginaria: %s\n",s);
+            read(arregloPipesEscritura[i][LECTURA],s,sizeof(char)*20);
+            printf("Potencia: %s\n",s);
+            read(arregloPipesEscritura[i][LECTURA],s,sizeof(char)*20);
+            printf("Ruido total: %s\n",s);
+            */
+            
+            
+            //close(arregloPipesEscritura[i][LECTURA]);
         }else{ // soy el hijo
             close(arregloPipesEscritura[i][LECTURA]);
             dup2(arregloPipesEscritura[i][ESCRITURA],STDOUT_FILENO);

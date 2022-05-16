@@ -20,10 +20,10 @@ typedef struct lineaDeComando{
 }entradaComando;
 
 typedef struct structResultado{
-    float mediaReal;
-    float mediaImaginaria;
-    float potencia;
-    float ruidoTotal;
+    long double mediaReal;
+    long double mediaImaginaria;
+    long double potencia;
+    long double ruidoTotal;
 }resultado;
 
 int cuenta_lineas(char* nombreArchivo);
@@ -32,5 +32,6 @@ void verificador_entradas(entradaComando entrada);
 int* arreglo_visibilidades_por_disco(int cantidadVisibilidades, int cantidadDiscos);
 int** crea_pipes_lectura(int cantidadDiscos);
 int** crea_pipes_escritura(int cantidadDiscos);
+resultado calcular(visibilidades* v,int total);
 
 //#endif

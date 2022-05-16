@@ -148,3 +148,19 @@ int** crea_pipes_escritura(int cantidadDiscos){
     }
     return pipesEscritura;
 }
+resultado calcular(visibilidades* v,int total){
+    resultado r;
+    r.mediaReal = 0;
+    r.mediaImaginaria = 0;
+    r.potencia = 0;
+    r.ruidoTotal = 0;
+    for(int i = 0; i < total; i++){
+        r.mediaReal = r.mediaReal + v[i].valorReal;
+        r.mediaImaginaria = r.mediaImaginaria + v[i].valorImaginario;
+        r.potencia = r.potencia + sqrt(pow(v[i].valorReal,2) + pow(v[i].valorImaginario,2));
+        r.ruidoTotal = r.ruidoTotal + v[i].ruido;
+    }
+    r.mediaReal = (r.mediaReal/total);
+    r.mediaImaginaria = (r.mediaImaginaria/total);
+    return r;
+}
