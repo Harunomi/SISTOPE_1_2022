@@ -1,0 +1,19 @@
+CC = gcc
+TARGET = lab1
+SOURCE = lab1.c
+OBJETS = lab1.o
+FLAGS = -Wall -lm -pthread -lniceprint -L .
+
+$(TARGET): $(OBJETS)
+	$(CC) $(OBJETS) -o $(TARGET) $(FLAGS)
+
+%.o: %.c 
+	$(CC) -c $< -o $@
+	
+clean:
+	rm -f $(OBJETS) $(TARGET)
+
+run:
+	./lab1 -i test10000.csv -o salida -d 4 -n 100
+
+.PHONY: clean

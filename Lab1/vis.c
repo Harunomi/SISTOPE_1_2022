@@ -3,7 +3,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <math.h>
-#include "Funciones.h"
+//#include "Funciones.h"
 #include "FuncionesTest.h"
 
 int main(int argc, char **argv){
