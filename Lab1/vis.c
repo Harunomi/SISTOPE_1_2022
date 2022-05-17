@@ -3,55 +3,20 @@
 #include <unistd.h>
 #include <string.h>
 #include <math.h>
-//#include "Funciones.h"
-#include "FuncionesTest.h"
+#include "Funciones.h"
+
 
 int main(int argc, char **argv){
-    int totalV = atoi(argv[0]);
+    int totalV = atoi(argv[0]); // el total de visibilidades lo recibimos como string, entonces lo pasamos a entero
     resultado r;
     visibilidades *v = (visibilidades*)malloc(sizeof(visibilidades)*totalV);
-    //visibilidades *retorno = (visibilidades*)malloc(sizeof(visibilidades)*totalV);
-    read(STDIN_FILENO,&v, sizeof(visibilidades*));
-    r = calcular(v,totalV);
-    write(STDOUT_FILENO, &r, sizeof(resultado));
-    //retorno = v;
-    
-    //media reaL
-    /*
-    for (int t = 0; t < totalV; t++) {
-        mediaReal = mediaReal + v[t].valorReal;
-        mediaImaginaria = mediaImaginaria + v[t].valorImaginario;
-        potencia = potencia + sqrt(pow(v[t].valorReal,2) + pow(v[t].valorImaginario,2));
-        ruidoTotal = ruidoTotal + v[t].ruido;
+    visibilidades *v2 = (visibilidades*)malloc(sizeof(visibilidades)*totalV);
+    for (int i = 0; i < totalV; i++) {
+        // leemos el stdin con cada visibilidad
+        read(STDIN_FILENO,&v[i],sizeof(visibilidades));
+        v2[i] = v[i]; // se  guarda dicha visibilidad en v2 para posteriormente ser trabajada
     }
-    mediaReal = mediaReal/totalV;
-    mediaImaginaria = mediaImaginaria/totalV;
-    */
-
-
-    /*
-    write(STDOUT_FILENO, &mediaReal, sizeof(float));
-    write(STDOUT_FILENO, &mediaImaginaria, sizeof(float));
-    write(STDOUT_FILENO, &potencia, sizeof(float));
-    write(STDOUT_FILENO, &ruidoTotal, sizeof(float));
-    */
-    /*
-    gcvt(mediaReal,10,cmr);
-    gcvt(mediaImaginaria,10,cmi);
-    gcvt(potencia,10,cp);
-    gcvt(ruidoTotal,10,cr);
-    */
-    /*
-    r.mediaReal = mediaReal;
-    r.mediaImaginaria = mediaImaginaria;
-    r.potencia = potencia;
-    r.ruidoTotal = ruidoTotal;
-    */
-
-    
-
-
-    
-    
+    r = calcular(v2,totalV); // hacemos el llamado a la funcion para calcular
+    write(STDOUT_FILENO, &r, sizeof(resultado)); // devolvemos dicho resultado al proceso padre
     return 0;
 }

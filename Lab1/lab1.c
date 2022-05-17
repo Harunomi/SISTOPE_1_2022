@@ -5,46 +5,10 @@
 #include <math.h>
 #include <sys/wait.h>
 #include <sys/types.h>
-//#include "Funciones.h"
-#include "FuncionesTest.h"
+#include "Funciones.h"
+
 #define LECTURA 0
 #define ESCRITURA 1
-
-int *totalVisibilidades(char *nombreArchivo,int totalLineas,int cantDiscos,int *rangoDiscos){
-    visibilidades v;
-    float distancia;
-    int counter;
-    int counter2;
-    int *cantidadVisibilidades = (int*)malloc(sizeof(int)*cantDiscos);
-    for (int i = 0; i < cantDiscos; i++) {
-        cantidadVisibilidades[i] = 0;
-    }
-    FILE *fp;
-    for (int i = 0; i < cantDiscos; i++) {
-        counter = 0;
-        counter2 = 0;
-        fp = fopen(nombreArchivo,"r");
-        for (int k = 0; k < totalLineas; k++) {
-            fscanf(fp,"%f,%f,%f,%f,%f",&v.ejeU,&v.ejeV,&v.valorReal,&v.valorImaginario,&v.ruido);
-            distancia = sqrt(pow(v.ejeU,2) + pow(v.ejeV,2));
-            // determino si esa distancia corresponde al disco (proceso) actual
-            if(distancia>=rangoDiscos[i] && distancia < rangoDiscos[i+1] && i+1 < cantDiscos){   
-                // si corresponde al proceso actual, entonces lo mando por el pipe
-                counter++;
-            }
-            if(distancia >=rangoDiscos[cantDiscos-1]){
-                counter2++;
-            }
-        }
-        cantidadVisibilidades[i] = counter;
-        if(i == cantDiscos-1){
-            cantidadVisibilidades[cantDiscos-1] = counter2;
-        }
-        fclose(fp);
-    }
-    return cantidadVisibilidades;
-    
-}
 
 int main(int argc, char *argv[]){   
     entradaComando o;
@@ -101,18 +65,16 @@ int main(int argc, char *argv[]){
     int totalLineas = cuenta_lineas(o.archivoVisibilidades);
 
     cantidadVisibilidades = totalVisibilidades(o.archivoVisibilidades,totalLineas,o.cantDiscos,rangoDiscos);
-    
-    visibilidades *lista;
     int aux;
     resultado r;
-    char s[20];
-    for (int i = 0; i < o.cantDiscos; i++) {
+    int i;
+    for (i = 0; i < o.cantDiscos; i++) {
         pid = fork();
         
         if (pid != 0){ // soy el padre
+            close(arregloPipesLectura[i][LECTURA]); // se cierra este pipe puesto que sera usado para enviar datos 
             fp = fopen(o.archivoVisibilidades,"r");
             aux = 0;
-            lista = (visibilidades*)malloc(sizeof(visibilidades)*cantidadVisibilidades[i]);
             for (int j = 0; j < totalLineas ; j++) {
                 // leo la linea del codigo
                 fscanf(fp,"%f,%f,%f,%f,%f",&v.ejeU,&v.ejeV,&v.valorReal,&v.valorImaginario,&v.ruido);
@@ -121,52 +83,39 @@ int main(int argc, char *argv[]){
                 // determino si esa distancia corresponde al disco (proceso) actual             
                 if(distancia>=rangoDiscos[i] && distancia < rangoDiscos[i+1] && i+1 < o.cantDiscos){   
                     // si corresponde al proceso actual, entonces lo mando por el pipe 
-                    lista[aux] = v;
+                    write(arregloPipesLectura[i][ESCRITURA], &v,sizeof(visibilidades));
                     aux++;
                 }
-                if(distancia >=rangoDiscos[o.cantDiscos-1] && i == o.cantDiscos-1){
-                    //write(arregloPipesLectura[o.cantDiscos-1][ESCRITURA], &v, sizeof(visibilidades));
-                    lista[aux] = v;
+                if(distancia >=rangoDiscos[o.cantDiscos-1] && i == o.cantDiscos-1){ // caso para el ultimo rango 
+                    write(arregloPipesLectura[i][ESCRITURA], &v,sizeof(visibilidades));
                     aux++;
                 }
                 
             }
-            write(arregloPipesLectura[i][ESCRITURA], &lista,sizeof(visibilidades*));
-            free(lista);
             fclose(fp);
             
             waitpid(pid,&status,0);
-            close(arregloPipesEscritura[i][ESCRITURA]);
-            read(arregloPipesEscritura[i][LECTURA],&r,sizeof(resultado));
 
-            printf("Disco %d\n",i+1);
-            printf("Media real: %Lf\n",r.mediaReal);
-            printf("Media Imaginaria: %Lf\n",r.mediaImaginaria);
-            printf("Potencia: %Lf\n",r.potencia);
-            printf("Ruido total: %Lf\n",r.ruidoTotal);
-            /*
-            printf("Disco %d\n",i+1);
-            read(arregloPipesEscritura[i][LECTURA],s,sizeof(char)*20);
-    
-
-            printf("Media real: %s\n",s);
-            read(arregloPipesEscritura[i][LECTURA],s,sizeof(char)*20);
-            printf("Media imaginaria: %s\n",s);
-            read(arregloPipesEscritura[i][LECTURA],s,sizeof(char)*20);
-            printf("Potencia: %s\n",s);
-            read(arregloPipesEscritura[i][LECTURA],s,sizeof(char)*20);
-            printf("Ruido total: %s\n",s);
-            */
-            
-            
-            //close(arregloPipesEscritura[i][LECTURA]);
-        }else{ // soy el hijo
+            close(arregloPipesEscritura[i][ESCRITURA]); // para evitar errores con los hijos cerramos el pipe
+            read(arregloPipesEscritura[i][LECTURA],&r,sizeof(resultado)); // recibimos los resultados calculados por el hijo
             close(arregloPipesEscritura[i][LECTURA]);
-            dup2(arregloPipesEscritura[i][ESCRITURA],STDOUT_FILENO);
+
+            // escribimos los resultados en el archivo de texto.
+            fprintf(salida,"Disco %d\n",i+1); 
+            fprintf(salida,"Media Real: %Lf\n",r.mediaReal);
+            fprintf(salida,"Media Imaginaria: %Lf\n",r.mediaImaginaria);
+            fprintf(salida,"Potencia: %Lf\n",r.potencia);
+            fprintf(salida,"Ruido total: %Lf\n",r.ruidoTotal);
+            
+            
+            
+        }else{ // soy el hijo
+            close(arregloPipesEscritura[i][LECTURA]); // cerramos el lado de lectura, puesto que no lo leeremos
+            dup2(arregloPipesEscritura[i][ESCRITURA],STDOUT_FILENO); // hacemos una copia del pipe al stdout
             close(arregloPipesEscritura[i][ESCRITURA]);
 
-            close(arregloPipesLectura[i][ESCRITURA]);
-            dup2(arregloPipesLectura[i][LECTURA],STDIN_FILENO);
+            close(arregloPipesLectura[i][ESCRITURA]); // cerramos el lado de escritura 
+            dup2(arregloPipesLectura[i][LECTURA],STDIN_FILENO); // hacemos una copia del pipe al stdin
             close(arregloPipesLectura[i][LECTURA]);
 
             // transformo el total de visibilidades para el respectivo disco a string
@@ -175,11 +124,21 @@ int main(int argc, char *argv[]){
             snprintf(cNum,sizeCNum+1,"%d",cantidadVisibilidades[i]);
             
 
+           
+            // le pasamos el total de visibilidades al vis por medio de un parametro de entrada.
             execl("vis",cNum,NULL);
             printf("Soy el hijo de pid %d, procese %d visibilidades",getpid(),cantidadVisibilidades[i]);
 
         }
     }
+    // liberamos memoria y cerramos archivos
     fclose(salida);
+    free(cantidadVisibilidades);
+    free(rangoDiscos);
+    for (int i=0;i<o.cantDiscos;i++){ //Se libera la memoria de los pipes
+        free(arregloPipesEscritura[i]);
+        free(arregloPipesLectura[i]);
+    }
+
     return 0;
 }
