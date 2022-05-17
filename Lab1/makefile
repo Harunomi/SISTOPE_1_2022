@@ -17,7 +17,7 @@ $(objects): %.o:%.c
 	$(CC) -c $*.c
 
 run:
-	./lab1 -i test10000.csv -o salida -d 4 -n 100
+	./lab1 -i test10000.csv -o salida.txt -d 4 -n 100 -b
 
 clean:
 	rm -f $(outVis) $(outLab) $(objects)

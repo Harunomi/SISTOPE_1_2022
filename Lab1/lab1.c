@@ -129,8 +129,6 @@ int main(int argc, char *argv[]){
            
             // le pasamos el total de visibilidades al vis por medio de un parametro de entrada.
             execl("vis",cNum,NULL);
-            printf("Soy el hijo de pid %d, procese %d visibilidades",getpid(),cantidadVisibilidades[i]);
-
         }
     }
     // liberamos memoria y cerramos archivos
