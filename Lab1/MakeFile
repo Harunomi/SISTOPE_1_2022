@@ -1,19 +1,19 @@
 CC = gcc
-TARGET = lab1
-SOURCE = lab1.c
-OBJETS = lab1.o
-FLAGS = -Wall -lm -pthread -lniceprint -L .
+CFLAGS = -Wall -lm 
+out = lab1
+source = lab1.c Funciones.c
+objects = $(source:.c=.o)
+depends = .depends
+headers = Funciones.h
 
-$(TARGET): $(OBJETS)
-	$(CC) $(OBJETS) -o $(TARGET) $(FLAGS)
+$(out): $(objects)
 
-%.o: %.c 
-	$(CC) -c $< -o $@
-	
+	$(CC) -o $@ $^ $(CFLAGS) -L .
+$(objects):
+	$(CC) -c $*.c
+$(depends): $(source) $(headers)
+	@$(CC) -MM $(source) > $@
 clean:
-	rm -f $(OBJETS) $(TARGET)
-
-run:
-	./lab1 -i test10000.csv -o salida -d 4 -n 100
-
-.PHONY: clean
+	rm -f $(objects) $(out) $(depends)
+.PHONY:clean
+sinclude $(depends)

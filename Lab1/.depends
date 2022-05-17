@@ -1,0 +1,2 @@
+lab1.o: lab1.c Funciones.h
+Funciones.o: Funciones.c Funciones.h
