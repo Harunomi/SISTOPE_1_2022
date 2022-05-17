@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "Funciones.h"
 #include "math.h"
 #include <unistd.h>
+#include "Funciones.h"
 
 /*
  * Function:  cuenta_lineas 
@@ -34,32 +34,6 @@ int cuenta_lineas(char *nombreArchivo){
     return cantidadLineas;
 }
 /*
- * Function:  leer_visibilidades
- * --------------------
- * lee el archivo y almacena los valores en un arreglo de estructuas
- *
- *  nombreArchivo: es el nombre del archivo el cual se abrirá y se procederá a contar sus lineas
- *  cantidadVisibilidades: cantidad de visibilidades existentes en el archivo
- *  retorno: cantidad de lineas que tiene un archivo
- */
-visibilidades* leer_visibilidades(char *nombreArchivo){
-    FILE* archivo;
-    int  i, cantidadVisibilidades;
-    cantidadVisibilidades = cuenta_lineas(nombreArchivo);
-    i = 0;
-    //char buffer[1024];
-    visibilidades *listaVisibilidades = (visibilidades*)malloc(sizeof(visibilidades) * cantidadVisibilidades);
-    if (archivo = fopen(nombreArchivo, "r")){
-		//fgets(buffer, 1024, archivo);
-		while (fscanf(archivo, "%f,%f,%f,%f,%f", &listaVisibilidades[i].ejeU, &listaVisibilidades[i].ejeV, &listaVisibilidades[i].valorReal, &listaVisibilidades[i].valorImaginario, &listaVisibilidades[i].ruido) != EOF){
-			++i;
-		}
-		fclose(archivo);
-	}
-    return listaVisibilidades;
-}
-
-/*
  * Function:  verificador_entradas
  * --------------------
  * Comprueba que los datos almacenados en la estructura de archivos estè correcta
@@ -86,69 +60,13 @@ void verificador_entradas(entradaComando entrada){
     
 
 }
-
 /*
- * Function:  arreglo_visibilidades_por_disco
+ * Function:  calcular
  * --------------------
- * Crea un arreglo con la cantidad de cuantas visibilidades debe procesar cada disco (hijo)
- *  entrada: cantidad total de visibilidades en el archivo, cantidad de discos (hijos)
- *  retorno: arreglo de enteros
+ * Hace los calculos propicios del disco
+ *  entrada: un arreglo de visibibilidades y un entero con el total de visibilidades
+ *  retorno: una variable de tipo struct resultado
  */
-int* arreglo_visibilidades_por_disco(int cantidadVisibilidades, int cantidadDiscos){
-    int cantidadPorDisco = cantidadVisibilidades / cantidadDiscos;
-    int * arregloCantidades = malloc(sizeof(int)*cantidadDiscos+1);
-    if (cantidadVisibilidades%cantidadDiscos == 0)
-    {
-        for (int i = 0; i < cantidadDiscos; i++)
-        {
-            arregloCantidades[i] = cantidadPorDisco;
-        }
-        
-    }else{
-        for (int i = 0; i < cantidadDiscos - 1; i++)
-        {
-            arregloCantidades[i] = cantidadPorDisco;
-        }
-        arregloCantidades[cantidadDiscos-1] = cantidadPorDisco + 1;
-        
-    }
-    return arregloCantidades;
-    
-}
-
-/*
- * Function:  crea_pipes_lectura(
- * --------------------
- * Crea un arreglo con los pipes para realizar la lectura entre padre e hijo
- *  entrada: cantidad de discos (hijos)
- *  retorno: arreglo de pipes
- */
-int** crea_pipes_lectura(int cantidadDiscos){
-    int ** pipesLectura = (int**)malloc(sizeof(int *)*cantidadDiscos);
-    for (int i = 0; i < cantidadDiscos; i++)
-    {
-        pipesLectura[i] = (int*)malloc(sizeof(int)*2);
-        pipe(pipesLectura[i]);
-    }
-    return pipesLectura;
-}
-
-/*
- * Function:  crea_pipes_escritura(
- * --------------------
- * Crea un arreglo con los pipes para realizar la escritura entre padre e hijo
- *  entrada: cantidad de discos (hijos)
- *  retorno: arreglo de pipes
- */
-int** crea_pipes_escritura(int cantidadDiscos){
-    int ** pipesEscritura = (int**)malloc(sizeof(int *)*cantidadDiscos);
-    for (int i = 0; i < cantidadDiscos; i++)
-    {
-        pipesEscritura[i] = (int*)malloc(sizeof(int)*2);
-        pipe(pipesEscritura[i]);
-    }
-    return pipesEscritura;
-}
 resultado calcular(visibilidades* v,int total){
     resultado r;
     r.mediaReal = 0;
@@ -165,6 +83,14 @@ resultado calcular(visibilidades* v,int total){
     r.mediaImaginaria = (r.mediaImaginaria/total);
     return r;
 }
+/*
+ * Function:  totalVisibilidades
+ * --------------------
+ * Lee el archivo de entrada y calcula cuantas visibilidades le corresponde a cada disco
+ *  entrada: un arreglo de char con el nombre del archivo, un entero con el total de lineas del archivo,
+    el total de discos que le corresponde y un arreglo de enteros con el rango de los discos
+ *  retorno: un arreglo de enteros en donde cada posicion es el total de visibilidades por disco.
+ */
 
 int *totalVisibilidades(char *nombreArchivo,int totalLineas,int cantDiscos,int *rangoDiscos){
     visibilidades v;

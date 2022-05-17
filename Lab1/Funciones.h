@@ -1,5 +1,6 @@
+#ifndef Funciones_h_
 #define Funciones_h_
-#include <stdio.h>
+#include<stdio.h>
 
 //Estructura para representar una visibilidad
 typedef struct visibilidadesStruct{
@@ -10,6 +11,7 @@ typedef struct visibilidadesStruct{
     float ruido;
 }visibilidades;
 
+// Estructura para guardar los datos de entrada
 typedef struct lineaDeComando{
     char archivoVisibilidades[40];
     char archivoSalida[40];
@@ -18,6 +20,7 @@ typedef struct lineaDeComando{
     int ptrcsl; // variable para saber si se imprime por pantalla o no
 }entradaComando;
 
+// Estructura en donde se guardan los resultados obtenidos por cada disco.
 typedef struct structResultado{
     long double mediaReal;
     long double mediaImaginaria;
@@ -25,11 +28,11 @@ typedef struct structResultado{
     long double ruidoTotal;
 }resultado;
 
-int cuenta_lineas(char* nombreArchivo);
-visibilidades* leer_visibilidades(char *nombreArchivo);
+int cuenta_lineas(char *nombreArchivo);
+
 void verificador_entradas(entradaComando entrada);
-int* arreglo_visibilidades_por_disco(int cantidadVisibilidades, int cantidadDiscos);
-int** crea_pipes_lectura(int cantidadDiscos);
-int** crea_pipes_escritura(int cantidadDiscos);
+
 resultado calcular(visibilidades* v,int total);
+
 int *totalVisibilidades(char *nombreArchivo,int totalLineas,int cantDiscos,int *rangoDiscos);
+#endif

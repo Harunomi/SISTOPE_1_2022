@@ -70,7 +70,9 @@ int main(int argc, char *argv[]){
     int i;
     for (i = 0; i < o.cantDiscos; i++) {
         pid = fork();
-        
+        if (o.ptrcsl == 1 && pid == 0){
+            printf("Soy el hijo de pid %d, procese %d visibilidades\n",getpid(),cantidadVisibilidades[i]);
+        }
         if (pid != 0){ // soy el padre
             close(arregloPipesLectura[i][LECTURA]); // se cierra este pipe puesto que sera usado para enviar datos 
             fp = fopen(o.archivoVisibilidades,"r");
