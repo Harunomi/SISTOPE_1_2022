@@ -1,0 +1,5 @@
+Para compilar los programas de esta práctica de laboratorio, se utilizará un archivo MAKE.Esto facilita la compilación.
+Ahora se proporcionan los siguientes pasos para compilar y ejecutar el programa:
+1- Se recomienda realizar un "make clean" para eliminar ejecutables en caso de que existan.
+2- make
+3- ./lab2 -i test10000.csv -o salida.text -d 100 -n 4 -h 3 -c 100 -b
