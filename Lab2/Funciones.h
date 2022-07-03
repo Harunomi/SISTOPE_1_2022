@@ -26,8 +26,6 @@ typedef struct lineaDeComando{
 
 // Estructura en donde se guardan los resultados obtenidos por cada disco.
 typedef struct structResultado{
-    long double sumU;
-    long double sumV;
     long double mediaReal;
     long double mediaImaginaria;
     long double potencia;
@@ -45,6 +43,8 @@ typedef struct structResultado{
  *  retorno: void
  */
 void verificador_entradas(entradaComando e);
+
+void printearResultados(char *nombreArchivo);
 
 
 /*

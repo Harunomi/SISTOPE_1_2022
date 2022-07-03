@@ -46,4 +46,20 @@ void verificador_entradas(entradaComando e){
     fclose(archivo);   
     
 }
+/*
+ * Function:  printearResultados
+ * --------------------
+ * Permite dada una bandera dada, mostrar los resultados obtenidos por los calculas en pantalla
+ *  entrada: un puntero de tipo char
+ *  retorno: void
+ */
+void printearResultados(char *nombreArchivo){
+    FILE *fp = fopen(nombreArchivo,"r");
+    char fila[1000];
+    while(!feof(fp)){
+        fscanf(fp," %[^\n]",fila);
+        printf("%s\n",fila);
+    }
+    fclose(fp);
+}
 
