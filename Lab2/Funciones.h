@@ -43,16 +43,16 @@ typedef struct structResultado{
  *  retorno: void
  */
 void verificador_entradas(entradaComando e);
-
+/*
+ * Function:  pintear resultados
+ * --------------------
+ * funcion que permite mostrar por pantallas los datos obtenidos por los discos=
+ *  entrada: un char con el nombr edel archivo
+ *  retorno: void
+ */
 void printearResultados(char *nombreArchivo);
 
 
-/*
- * Function:  verificador_entradas
- * --------------------
- * Comprueba que los datos almacenados en la estructura de archivos estè correcta
- *  entrada: estructura con los datos de entrada
- *  retorno: void
- */
+
 
 #endif
