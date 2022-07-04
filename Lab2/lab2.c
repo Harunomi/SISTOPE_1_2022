@@ -7,7 +7,9 @@
 #include <sys/types.h>
 #include <pthread.h>
 #include "Funciones.h"
-
+/*
+Variables Globales
+*/
 FILE *archivoEntrada; // archivo de lectura global
 // mmutex de escritura y de lectura
 pthread_mutex_t mLectura; 
@@ -23,60 +25,8 @@ int key = 0; // semaforo
  *  entrada: void *unused
  *  retorno: void
  */
-void *ejecucion(void *unused){
-    // ppreguntamos si hemos llegado al final del archivo de lectura
-    if (!feof(archivoEntrada)){
-        // cerramos el mutex de lectura,
-        pthread_mutex_lock(&mLectura);
-        // seteamos el contador de lineas en cero
-        int contador = 0;
-        // hacemos el ciclo mientras el contador sea menor a la cantidad de lineas, key sea distinto a 1 y no sea el final del archivo
-        while (contador < entrada.chunk && key != 1 && !feof(archivoEntrada)){
-            // si key == 0
-            if (key == 0){
-                // leemos una visibilidad del archivo
-                visibilidades actual;
-                if(fscanf(archivoEntrada,"%f,%f,%f,%f,%f", &actual.ejeU,&actual.ejeV,&actual.valorReal,&actual.valorImaginario,&actual.ruido)){
 
-                    // ubicamos en que disco se encuentra la visibilidad actual
-                    double distancia = sqrt(pow(actual.ejeU,2) + pow(actual.ejeV,2));
-                    int pos;
-                    // recorremos el rango de los discos para ubicar la distancia actual dentro de su radio
-                    for (int i = 0; i < entrada.cantDiscos ; i++) {
-                        // por ejemplo preguntamos si la distancia esta entre  0 y 10 y ademas que no sea el final del arreglo
-                        if(distancia >= rangoDiscos[i] && distancia < rangoDiscos[i+1] && i+1 < entrada.cantDiscos ){
-                            pos = i;
-                        }
-                        // caso para el final del arreglo donde distnacia > ultimo radio del disco
-                        if (distancia >= rangoDiscos[entrada.cantDiscos-1] && i == entrada.cantDiscos-1){
-                            pos = i;
-                        }
-                    }
-                    // aumentamos el contador de lineas
-                    contador++;
-                    pthread_mutex_lock(&mEscritura); // como vamos a escribir dentro de una variable, cerramos el mutex de escritura
-                    // guardamos las visibilidades leidas 
-                    discos[pos].contador++;
-                    discos[pos].mediaReal = discos[pos].mediaReal + actual.valorReal;
-                    discos[pos].mediaImaginaria = discos[pos].mediaImaginaria + actual.valorImaginario;
-                    discos[pos].ruidoTotal = discos[pos].ruidoTotal + actual.ruido;
-                    discos[pos].potencia = discos[pos].potencia + (sqrt(pow(actual.valorReal,2) + pow(actual.valorImaginario,2)));
-                    // terminada la manipulacion de la variable globalm abrimos el mutex de escritur
-                    pthread_mutex_unlock(&mEscritura); 
-                }
-            }else{
-                key = 0;
-            }
-        }
-        pthread_mutex_unlock(&mLectura); // terminada la lectura abrimos el mutex de lecutra
-        ejecucion(NULL);
-    }else{ // si ya llegamos el final del archivo entonces cerramos el hilo
-        pthread_exit(NULL);
-    }
-    // si aun quedan lineas, cerramos la hebra 
-    pthread_exit(NULL);
-    
-}
+void *ejecucion(void *unused);
 
 int main(int argc, char *argv[]){
     // definicion de algunas variables
@@ -186,4 +136,59 @@ int main(int argc, char *argv[]){
     
 
     return 0;
+}
+
+void *ejecucion(void *unused){
+    // ppreguntamos si hemos llegado al final del archivo de lectura
+    if (!feof(archivoEntrada)){
+        // cerramos el mutex de lectura,
+        pthread_mutex_lock(&mLectura);
+        // seteamos el contador de lineas en cero
+        int contador = 0;
+        // hacemos el ciclo mientras el contador sea menor a la cantidad de lineas, key sea distinto a 1 y no sea el final del archivo
+        while (contador < entrada.chunk && key != 1 && !feof(archivoEntrada)){
+            // si key == 0
+            if (key == 0){
+                // leemos una visibilidad del archivo
+                visibilidades actual;
+                if(fscanf(archivoEntrada,"%f,%f,%f,%f,%f", &actual.ejeU,&actual.ejeV,&actual.valorReal,&actual.valorImaginario,&actual.ruido)){
+
+                    // ubicamos en que disco se encuentra la visibilidad actual
+                    double distancia = sqrt(pow(actual.ejeU,2) + pow(actual.ejeV,2));
+                    int pos;
+                    // recorremos el rango de los discos para ubicar la distancia actual dentro de su radio
+                    for (int i = 0; i < entrada.cantDiscos ; i++) {
+                        // por ejemplo preguntamos si la distancia esta entre  0 y 10 y ademas que no sea el final del arreglo
+                        if(distancia >= rangoDiscos[i] && distancia < rangoDiscos[i+1] && i+1 < entrada.cantDiscos ){
+                            pos = i;
+                        }
+                        // caso para el final del arreglo donde distnacia > ultimo radio del disco
+                        if (distancia >= rangoDiscos[entrada.cantDiscos-1] && i == entrada.cantDiscos-1){
+                            pos = i;
+                        }
+                    }
+                    // aumentamos el contador de lineas
+                    contador++;
+                    pthread_mutex_lock(&mEscritura); // como vamos a escribir dentro de una variable, cerramos el mutex de escritura
+                    // guardamos las visibilidades leidas 
+                    discos[pos].contador++;
+                    discos[pos].mediaReal = discos[pos].mediaReal + actual.valorReal;
+                    discos[pos].mediaImaginaria = discos[pos].mediaImaginaria + actual.valorImaginario;
+                    discos[pos].ruidoTotal = discos[pos].ruidoTotal + actual.ruido;
+                    discos[pos].potencia = discos[pos].potencia + (sqrt(pow(actual.valorReal,2) + pow(actual.valorImaginario,2)));
+                    // terminada la manipulacion de la variable globalm abrimos el mutex de escritur
+                    pthread_mutex_unlock(&mEscritura); 
+                }
+            }else{
+                key = 0;
+            }
+        }
+        pthread_mutex_unlock(&mLectura); // terminada la lectura abrimos el mutex de lecutra
+        ejecucion(NULL);
+    }else{ // si ya llegamos el final del archivo entonces cerramos el hilo
+        pthread_exit(NULL);
+    }
+    // si aun quedan lineas, cerramos la hebra 
+    pthread_exit(NULL);
+    
 }
