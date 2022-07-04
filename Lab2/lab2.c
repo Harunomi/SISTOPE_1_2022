@@ -1,3 +1,12 @@
+/*
+Integrantes:
+            Cristhofer Parada RUT: 20387754-4
+            Benjamin Parra RUT: 19741126-0
+
+Profesor Catedra: Fernado Rannou
+
+Ayudante: Ricardo Hasbun
+*/
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -7,6 +16,8 @@
 #include <sys/types.h>
 #include <pthread.h>
 #include "Funciones.h"
+
+
 /*
 Variables Globales
 */
@@ -18,14 +29,15 @@ entradaComando entrada;// variable global donde se almacena los datos obtenidos 
 resultado  *discos; // variable con los datos de cada disco 
 int *rangoDiscos; // variable donde se hace el calculo de los radios de los discos
 int key = 0; // semaforo 
+
+
 /*
- * Function:  ejceucion
+ * Function:  ejecucion
  * --------------------
  * Rutina que se le da a las hebras para que cada una la ejecute, asegurandose de que exista concurrencia y teniendo cuidado con las zonas criticas 
  *  entrada: void *unused
  *  retorno: void
  */
-
 void *ejecucion(void *unused);
 
 int main(int argc, char *argv[]){
@@ -96,7 +108,7 @@ int main(int argc, char *argv[]){
     // creamos el arreglo con las hebras
 
     pthread_t thread[entrada.cantHebras];
-    // ejecutamos caa una de las hebras con la rutina llamada ejecucion
+    // ejecutamos cada una de las hebras con la rutina llamada ejecucion
     for (int i = 0; i < entrada.cantHebras; i++) {
         pthread_create(&thread[i], &attr[i],ejecucion,NULL);
         
